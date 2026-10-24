@@ -16,7 +16,14 @@ if (!process.env.JWT_SECRET || !process.env.MONGO_URI) {
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+// Hosts like Render sit behind a proxy; trust it so rate limiting sees each visitor's real IP
+app.set('trust proxy', 1);
+
+// CLIENT_URL may list several origins separated by commas; a trailing slash is ignored
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim().replace(/\/$/, ''));
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => res.json({ success: true, message: 'TaskFlow API is running' }));

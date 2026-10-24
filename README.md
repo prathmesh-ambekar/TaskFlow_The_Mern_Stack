@@ -206,7 +206,7 @@ Connect to `mongodb://127.0.0.1:27017`. After you register, a **`taskflow`** dat
 | `MONGO_URI` | `mongodb://127.0.0.1:27017/taskflow` | MongoDB connection string |
 | `JWT_SECRET` | *(long random string)* | Secret used to sign login tokens. **Required.** |
 | `JWT_EXPIRES_IN` | `7d` | How long a login lasts |
-| `CLIENT_URL` | `http://localhost:5173` | Frontend URL allowed by CORS |
+| `CLIENT_URL` | `http://localhost:5173` | Frontend URL(s) allowed by CORS; separate several with commas |
 | `TIMEZONE` | `Asia/Kolkata` | Your timezone; decides when "today" changes. Defaults to `UTC` |
 
 **`frontend/.env`**
@@ -382,14 +382,36 @@ Import `TaskFlow.postman_collection.json` into Postman. Run **Register** or **Lo
 
 ---
 
-## Deploy (outline)
+## Deploy (free: Atlas + Render + Vercel)
 
-1. **Database:** create a free MongoDB Atlas cluster, add a database user, allow your backend's IP, copy the connection string.
-2. **Backend:** Render or Railway. Root directory `backend`, start command `npm start`. Set `MONGO_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_URL` (your frontend URL) and `TIMEZONE`.
-3. **Frontend:** Vercel or Netlify. Root directory `frontend`, build command `npm run build`, output `dist`. Set `VITE_API_URL` to `https://<your-backend>/api`.
-   Add a rewrite of all paths to `/index.html` so routes like `/login` work on refresh.
+The repo is ready to deploy: `render.yaml` sets up the backend, `frontend/vercel.json` (or `frontend/public/_redirects` on Netlify) makes page refreshes work, and the backend trusts the host's proxy so rate limiting works per visitor.
 
----
+### 1. Database: MongoDB Atlas
+1. Sign up at https://www.mongodb.com/atlas and create a free **M0** cluster.
+2. **Database Access** → add a user with a password (letters and numbers only is easiest).
+3. **Network Access** → add `0.0.0.0/0` (Render's free plan has no fixed IP).
+4. **Connect → Drivers** → copy the string and put the database name `taskflow` before the `?`:
+   `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/taskflow?retryWrites=true&w=majority`
+
+### 2. Backend: Render
+1. Sign up at https://render.com with GitHub.
+2. **New + → Blueprint** → pick this repo. Render reads `render.yaml`.
+3. When asked, set `MONGO_URI` (from step 1) and `CLIENT_URL` (use `http://localhost:5173` for now; you'll change it in step 4). `JWT_SECRET` is generated automatically.
+4. Deploy, then open `https://<your-service>.onrender.com/api/health`. It should show `TaskFlow API is running`.
+
+### 3. Frontend: Vercel
+1. Sign up at https://vercel.com with GitHub → **Add New → Project** → pick this repo.
+2. **Root Directory:** `frontend` (Vite is detected automatically).
+3. **Environment Variables:** `VITE_API_URL` = `https://<your-service>.onrender.com/api`
+4. Deploy and copy your site URL, e.g. `https://taskflow-xyz.vercel.app`.
+
+### 4. Connect them
+In Render → your service → **Environment**, set `CLIENT_URL` to your Vercel URL and save (it redeploys). To allow several sites, separate them with commas.
+
+### Good to know
+- The free Render plan sleeps after ~15 minutes without visitors; the first request then takes 30–60 seconds.
+- Changing `VITE_API_URL` needs a **redeploy** on Vercel, because it is built into the frontend.
+- Pushing to `main` redeploys both sites automatically.
 
 ## Troubleshooting
 
