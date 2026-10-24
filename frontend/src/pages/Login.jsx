@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import AuthLayout from '../components/AuthLayout.jsx';
 
 export default function Login() {
   const { login } = useAuth();
@@ -23,18 +24,16 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-wrap">
-      <form className="card auth-card" onSubmit={handleSubmit}>
-        <h1>TaskFlow</h1>
-        <p className="muted">Log in to manage your tasks</p>
-        {error && <div className="alert">{error}</div>}
-        <label>Email</label>
-        <input type="email" name="email" value={form.email} onChange={handleChange} required />
-        <label>Password</label>
-        <input type="password" name="password" value={form.password} onChange={handleChange} required />
-        <button className="btn primary" disabled={busy}>{busy ? 'Logging in...' : 'Login'}</button>
-        <p className="muted">No account? <Link to="/register">Register</Link></p>
+    <AuthLayout title="Welcome back" subtitle="Log in to plan your day">
+      <form onSubmit={handleSubmit}>
+        {error && <div className="alert shake" key={error}>{error}</div>}
+        <label htmlFor="email">Email</label>
+        <input id="email" type="email" name="email" value={form.email} onChange={handleChange} required autoComplete="email" />
+        <label htmlFor="password">Password</label>
+        <input id="password" type="password" name="password" value={form.password} onChange={handleChange} required autoComplete="current-password" />
+        <button className="btn primary block" disabled={busy}>{busy && <span className="spinner" />}{busy ? 'Logging in' : 'Log in'}</button>
+        <p className="muted center">No account? <Link to="/register">Create one</Link></p>
       </form>
-    </div>
+    </AuthLayout>
   );
 }
