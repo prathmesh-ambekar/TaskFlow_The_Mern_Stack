@@ -382,9 +382,11 @@ Import `TaskFlow.postman_collection.json` into Postman. Run **Register** or **Lo
 
 ---
 
-## Deploy (free: Atlas + Render + Vercel)
+## Deploy (free: Atlas + Render + Vercel or Netlify)
 
-The repo is ready to deploy: `render.yaml` sets up the backend, `frontend/vercel.json` (or `frontend/public/_redirects` on Netlify) makes page refreshes work, and the backend trusts the host's proxy so rate limiting works per visitor.
+The repo is ready to deploy: `render.yaml` sets up the backend; `netlify.toml` or `frontend/vercel.json` sets up the frontend and makes page refreshes work; and the backend trusts the host's proxy so rate limiting works per visitor.
+
+The backend is a long-running Express server, so it goes on **Render** (Netlify and Vercel only host the frontend here).
 
 ### 1. Database: MongoDB Atlas
 1. Sign up at https://www.mongodb.com/atlas and create a free **M0** cluster.
@@ -405,12 +407,18 @@ The repo is ready to deploy: `render.yaml` sets up the backend, `frontend/vercel
 3. **Environment Variables:** `VITE_API_URL` = `https://<your-service>.onrender.com/api`
 4. Deploy and copy your site URL, e.g. `https://taskflow-xyz.vercel.app`.
 
+### 3 (alternative). Frontend: Netlify
+1. Sign up at https://netlify.com with GitHub → **Add new site → Import an existing project** → pick this repo.
+2. Leave the build settings as they are: `netlify.toml` already sets base `frontend`, command `npm run build`, publish `dist` and Node 22.
+3. **Site configuration → Environment variables:** add `VITE_API_URL` = `https://<your-service>.onrender.com/api`
+4. **Deploys → Trigger deploy** (so the new variable is built in), then copy your site URL, e.g. `https://taskflow-xyz.netlify.app`.
+
 ### 4. Connect them
-In Render → your service → **Environment**, set `CLIENT_URL` to your Vercel URL and save (it redeploys). To allow several sites, separate them with commas.
+In Render → your service → **Environment**, set `CLIENT_URL` to your Vercel or Netlify URL and save (it redeploys). To allow several sites, separate them with commas.
 
 ### Good to know
 - The free Render plan sleeps after ~15 minutes without visitors; the first request then takes 30–60 seconds.
-- Changing `VITE_API_URL` needs a **redeploy** on Vercel, because it is built into the frontend.
+- Changing `VITE_API_URL` needs a **redeploy** on Vercel or Netlify, because it is built into the frontend.
 - Pushing to `main` redeploys both sites automatically.
 
 ## Troubleshooting

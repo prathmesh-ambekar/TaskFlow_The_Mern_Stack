@@ -1,0 +1,15 @@
+# Netlify settings for the TaskFlow frontend (the backend runs on Render).
+# Only VITE_API_URL needs to be set in the Netlify dashboard.
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Serve the React app for every path, so refreshing /habits or /analytics works
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
